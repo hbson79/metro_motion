@@ -9,6 +9,7 @@ const links = [
 ];
 export default function Shell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
+  const isFeed = path === '/' || path === '/demo';
   return (
     <>
       <a href="#main" className="skip-link">
@@ -61,12 +62,14 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
       <div className="app-body">
-        <header className="topbar">
-          <span className="topbar-title">EXPLORING EVERYDAY PERSPECTIVES</span>
-          <span className="topbar-right">
-            <span className="tiny-cross">✳</span> SHORT FORM. BIG IDEAS.
-          </span>
-        </header>
+        {!isFeed && (
+          <header className="topbar">
+            <span className="topbar-title">EXPLORING EVERYDAY PERSPECTIVES</span>
+            <span className="topbar-right">
+              <span className="tiny-cross">✳</span> SHORT FORM. BIG IDEAS.
+            </span>
+          </header>
+        )}
         <main id="main" tabIndex={-1}>
           {children}
         </main>

@@ -2278,7 +2278,7 @@ main {
 }
 /* Viewport-fit layout: reserve real chrome height; never hide controls behind navigation. */
 .feed-page {
-  height: calc(100dvh - 70px);
+  height: 100dvh;
   display: flex;
   flex-direction: column;
 }
@@ -2305,7 +2305,7 @@ main {
 }
 @media (max-width: 760px) {
   .feed-page {
-    height: calc(100dvh - 118px - env(safe-area-inset-bottom));
+    height: calc(100dvh - 66px - env(safe-area-inset-bottom));
   }
   .viewer-layout {
     height: auto;

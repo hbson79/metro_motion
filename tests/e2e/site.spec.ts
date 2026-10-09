@@ -1,5 +1,31 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+test('feed removes decorative topbar and reserves only mobile navigation height', async ({
+  page,
+  isMobile,
+}) => {
+  await page.goto('/demo');
+  await expect(page.locator('.topbar')).toHaveCount(0);
+  const bounds = await page.evaluate(() => {
+    const feed = document.querySelector('.feed-page')!.getBoundingClientRect();
+    const nav = document.querySelector('.mobile-nav')!.getBoundingClientRect();
+    const video = document.querySelector('.video-scroller')!.getBoundingClientRect();
+    return {
+      top: feed.top,
+      bottom: feed.bottom,
+      navTop: nav.top,
+      height: innerHeight,
+      videoBottom: video.bottom,
+    };
+  });
+  expect(bounds.top).toBe(0);
+  expect(bounds.bottom).toBe(isMobile ? bounds.navTop : bounds.height);
+  expect(bounds.videoBottom).toBeLessThanOrEqual(bounds.bottom);
+  await page.goto('/');
+  await expect(page.locator('.topbar')).toHaveCount(0);
+  await page.goto('/documents');
+  await expect(page.locator('.topbar')).toBeVisible();
+});
 test('compact feed keeps categories and search on one row and gives space to video', async ({
   page,
   isMobile,
