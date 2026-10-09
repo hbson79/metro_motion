@@ -1381,6 +1381,7 @@ main {
 }
 .admin-toolbar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid var(--line);
@@ -1409,6 +1410,7 @@ main {
 }
 .toolbar-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
   align-items: center;
 }
@@ -2333,4 +2335,18 @@ main {
   .video-scroller {
     scroll-behavior: auto;
   }
+}
+
+.category-manager form {
+  margin-top: 20px;
+}
+.category-manager form + form {
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+.category-manager .primary-button {
+  margin-top: 12px;
+}
+.category-manager .editor-actions {
+  justify-content: flex-start;
 }
