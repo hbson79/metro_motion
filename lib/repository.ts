@@ -46,6 +46,48 @@ export async function signedUrl(
   return url;
 }
 export type ContentInput = Pick<Content, 'title' | 'description' | 'category' | 'published'>;
+export async function listCategories(client: SupabaseClient): Promise<string[]> {
+  const collected = new Set<string>();
+  for (let start = 0; ; start += 500) {
+    const { data, error } = await client
+      .from('categories')
+      .select('name')
+      .order('name', { ascending: true })
+      .range(start, start + 499);
+    if (error) throw error;
+    for (const row of data || []) collected.add(row.name);
+    if (!data || data.length < 500) break;
+  }
+  return [...collected];
+}
+export async function deleteCategory(client: SupabaseClient, name: string): Promise<void> {
+  const { error } = await client
+    .from('categories')
+    .delete()
+    .eq('name', name)
+    .select('name')
+    .single();
+  if (error?.code === '23503')
+    throw new Error('영상 또는 문서에서 사용 중인 카테고리는 삭제할 수 없습니다.');
+  if (error) throw error;
+}
+export async function saveCategory(
+  client: SupabaseClient,
+  value: string,
+  original?: string,
+): Promise<string> {
+  const name = value.trim();
+  if (!name || [...name].length > 40 || name === '전체')
+    throw new Error('카테고리는 1–40자여야 하며 “전체”는 사용할 수 없습니다.');
+  const operation =
+    original === undefined
+      ? client.from('categories').insert({ name })
+      : client.from('categories').update({ name }).eq('name', original);
+  const { data, error } = await operation.select('name').single();
+  if (error?.code === '23505') throw new Error('이미 존재하는 카테고리 이름입니다.');
+  if (error) throw error;
+  return data.name;
+}
 export async function saveContent(
   client: SupabaseClient,
   kind: Kind,

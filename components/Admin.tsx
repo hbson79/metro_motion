@@ -23,6 +23,9 @@ import {
   getClient,
   checkAdmin,
   listContent,
+  listCategories,
+  saveCategory,
+  deleteCategory,
   saveContent,
   deleteContent,
   setPublished,
@@ -122,16 +125,18 @@ export function ContentEditor({
   onSave,
   onCancel,
   busy,
+  categories = CATEGORIES.filter((c) => c !== '전체'),
 }: {
   kind: Kind;
   existing?: Content;
   onSave: (input: ContentInput, file: File | null) => void;
   onCancel: () => void;
   busy: boolean;
+  categories?: string[];
 }) {
   const [title, setTitle] = useState(existing?.title || '');
   const [description, setDescription] = useState(existing?.description || '');
-  const [category, setCategory] = useState(existing?.category || '도시');
+  const [category, setCategory] = useState(existing?.category || categories[0] || '');
   const [published, setPublished] = useState(existing?.published || false);
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState('');
@@ -141,6 +146,10 @@ export function ContentEditor({
     setError('');
     if (!title.trim()) {
       setError('제목을 입력해 주세요.');
+      return;
+    }
+    if (!categories.includes(category)) {
+      setError('등록된 카테고리를 선택해 주세요.');
       return;
     }
     if (!existing && !file) {
@@ -201,7 +210,7 @@ export function ContentEditor({
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
               >
-                {CATEGORIES.filter((c) => c !== '전체').map((c) => (
+                {categories.map((c) => (
                   <option key={c}>{c}</option>
                 ))}
               </select>
@@ -265,12 +274,94 @@ export function ContentEditor({
     </div>
   );
 }
+export function CategoryManager({
+  categories,
+  busy,
+  onSave,
+  onDelete,
+}: {
+  categories: string[];
+  busy: boolean;
+  onSave: (name: string, original?: string) => void;
+  onDelete: (name: string) => void;
+}) {
+  const [name, setName] = useState('');
+  return (
+    <section className="editor-panel category-manager" aria-label="카테고리 관리">
+      <h2>카테고리 관리</h2>
+      <p className="muted">
+        영상과 문서가 공유합니다. 이름 변경은 연결된 콘텐츠에도 적용되며, 사용 중인 카테고리는
+        삭제할 수 없습니다.
+      </p>
+      <form
+        aria-label="카테고리 추가"
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (!busy) onSave(name.trim());
+        }}
+      >
+        <fieldset disabled={busy}>
+          <label htmlFor="new-category">새 카테고리</label>
+          <input
+            id="new-category"
+            required
+            maxLength={40}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+          <button className="primary-button">카테고리 추가</button>
+        </fieldset>
+      </form>
+      {categories.map((category) => (
+        <form
+          key={category}
+          aria-label={`${category} 카테고리 편집`}
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!busy) onSave(String(new FormData(e.currentTarget).get('name')).trim(), category);
+          }}
+        >
+          <fieldset disabled={busy}>
+            <label htmlFor={`category-${category}`}>{category} 이름</label>
+            <input
+              id={`category-${category}`}
+              name="name"
+              required
+              maxLength={40}
+              defaultValue={category}
+            />
+            <div className="editor-actions">
+              <button className="secondary-button">이름 변경</button>
+              <button
+                type="button"
+                className="secondary-button destructive"
+                aria-label={`${category} 카테고리 삭제`}
+                onClick={() => {
+                  if (
+                    window.confirm(
+                      `“${category}” 카테고리를 삭제할까요? 사용 중이면 삭제되지 않습니다.`,
+                    )
+                  )
+                    onDelete(category);
+                }}
+              >
+                삭제
+              </button>
+            </div>
+          </fieldset>
+        </form>
+      ))}
+    </section>
+  );
+}
 export default function Admin() {
   const client = getClient();
   const [auth, setAuth] = useState<'loading' | 'guest' | 'admin' | 'denied'>('loading');
   const [authRefresh, setAuthRefresh] = useState(0);
   const [kind, setKind] = useState<Kind>('videos');
   const [rows, setRows] = useState<Content[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [managingCategories, setManagingCategories] = useState(false);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -320,9 +411,12 @@ export default function Admin() {
     if (!client || auth !== 'admin') return;
     let alive = true;
     setLoading(true);
-    listContent(client, kind, true)
-      .then((data) => {
-        if (alive) setRows(data);
+    Promise.all([listContent(client, kind, true), listCategories(client)])
+      .then(([data, names]) => {
+        if (alive) {
+          setRows(data);
+          setCategories(names);
+        }
       })
       .catch((e) => {
         if (alive) setError(errorMessage(e));
@@ -468,6 +562,17 @@ export default function Admin() {
         </div>
         <div className="toolbar-actions">
           <button
+            className="secondary-button"
+            aria-expanded={managingCategories}
+            disabled={busy || loading}
+            onClick={() => {
+              setManagingCategories((open) => !open);
+              setEditing(undefined);
+            }}
+          >
+            카테고리 관리
+          </button>
+          <button
             className="icon-button"
             aria-label="목록 새로고침"
             disabled={busy}
@@ -477,8 +582,9 @@ export default function Admin() {
           </button>
           <button
             className="primary-button"
-            disabled={busy}
+            disabled={busy || loading || categories.length === 0}
             onClick={() => {
+              setManagingCategories(false);
               setEditing(null);
               setError('');
               setNotice('');
@@ -498,10 +604,23 @@ export default function Admin() {
           {error}
         </p>
       )}
+      {managingCategories && (
+        <CategoryManager
+          categories={categories}
+          busy={busy || loading}
+          onSave={(name, original) =>
+            void act(() => saveCategory(client, name, original), '카테고리를 저장했습니다.')
+          }
+          onDelete={(name) =>
+            void act(() => deleteCategory(client, name), '카테고리를 삭제했습니다.')
+          }
+        />
+      )}
       {editing !== undefined && (
         <ContentEditor
           key={`${kind}-${editing?.id || 'new'}`}
           kind={kind}
+          categories={categories}
           existing={editing || undefined}
           busy={busy}
           onCancel={() => setEditing(undefined)}
@@ -570,6 +689,7 @@ export default function Admin() {
                   title="수정"
                   disabled={busy}
                   onClick={() => {
+                    setManagingCategories(false);
                     setEditing(row);
                     setError('');
                   }}

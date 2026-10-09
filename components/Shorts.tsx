@@ -11,8 +11,8 @@ import {
   RotateCw,
   MoveDownRight,
 } from 'lucide-react';
-import { CATEGORIES, filterContent, errorMessage, type Content } from '../lib/domain';
-import { getClient, listContent, signedUrl } from '../lib/repository';
+import { CATEGORIES, filterContent, errorMessage } from '../lib/domain';
+import { getClient, listContent, listCategories, signedUrl } from '../lib/repository';
 import Setup from './Setup';
 export type PlayItem = {
   id: string;
@@ -254,6 +254,7 @@ export default function Shorts({ demo = false }: { demo?: boolean }) {
   const [refresh, setRefresh] = useState(0);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('전체');
+  const [categories, setCategories] = useState<string[]>(demo ? CATEGORIES : ['전체']);
   const [index, setIndex] = useState(0);
   const [muted, setMuted] = useState(true);
   const [paused, setPaused] = useState(false);
@@ -264,9 +265,13 @@ export default function Shorts({ demo = false }: { demo?: boolean }) {
     let alive = true;
     setLoading(true);
     setError('');
-    listContent(client, 'videos')
-      .then((data: Content[]) => {
-        if (alive) setRows(data);
+    Promise.all([listContent(client, 'videos'), listCategories(client)])
+      .then(([data, names]) => {
+        if (alive) {
+          setRows(data);
+          setCategories(['전체', ...names]);
+          setCategory((current) => (names.includes(current) ? current : '전체'));
+        }
       })
       .catch((e) => {
         if (alive) setError(errorMessage(e));
@@ -353,7 +358,7 @@ export default function Shorts({ demo = false }: { demo?: boolean }) {
       </div>
       <div className="filter-row">
         <div className="category-tabs" aria-label="영상 카테고리">
-          {CATEGORIES.map((c) => (
+          {categories.map((c) => (
             <button
               key={c}
               aria-pressed={category === c}

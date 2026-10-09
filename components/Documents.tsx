@@ -2,8 +2,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { FileText, ArrowUpRight, Search, ArrowLeft, Download, Files } from 'lucide-react';
-import { CATEGORIES, type Content, filterContent, errorMessage } from '../lib/domain';
-import { getClient, listContent, signedUrl } from '../lib/repository';
+import { type Content, filterContent, errorMessage } from '../lib/domain';
+import { getClient, listContent, listCategories, signedUrl } from '../lib/repository';
 import Setup from './Setup';
 export function DocumentCard({ row }: { row: Content }) {
   return (
@@ -35,6 +35,7 @@ export default function Documents() {
   const [rows, setRows] = useState<Content[]>([]);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('전체');
+  const [categories, setCategories] = useState<string[]>(['전체']);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [retry, setRetry] = useState(0);
@@ -43,9 +44,13 @@ export default function Documents() {
     let alive = true;
     setLoading(true);
     setError('');
-    listContent(client, 'documents')
-      .then((data) => {
-        if (alive) setRows(data);
+    Promise.all([listContent(client, 'documents'), listCategories(client)])
+      .then(([data, names]) => {
+        if (alive) {
+          setRows(data);
+          setCategories(['전체', ...names]);
+          setCategory((current) => (names.includes(current) ? current : '전체'));
+        }
       })
       .catch((e) => {
         if (alive) setError(errorMessage(e));
@@ -70,7 +75,7 @@ export default function Documents() {
       </div>
       <div className="library-toolbar">
         <div className="category-tabs" aria-label="문서 카테고리">
-          {CATEGORIES.map((c) => (
+          {categories.map((c) => (
             <button
               key={c}
               aria-pressed={c === category}
