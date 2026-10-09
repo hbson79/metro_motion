@@ -1,5 +1,44 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+test('compact feed keeps categories and search on one row and gives space to video', async ({
+  page,
+  isMobile,
+}) => {
+  const sizes = isMobile
+    ? [
+        { width: 390, height: 844 },
+        { width: 360, height: 667 },
+      ]
+    : [
+        { width: 1440, height: 1000 },
+        { width: 1024, height: 768 },
+      ];
+  for (const size of sizes) {
+    await page.setViewportSize(size);
+    await page.goto('/demo');
+    await expect(page.getByRole('heading', { level: 1 })).not.toBeVisible();
+    const tabs = await page.locator('[aria-label="영상 카테고리"]').boundingBox();
+    const search = await page.getByRole('textbox', { name: '영상 검색' }).boundingBox();
+    const video = await page.locator('.video-scroller').boundingBox();
+    expect(tabs).not.toBeNull();
+    expect(search).not.toBeNull();
+    expect(video).not.toBeNull();
+    expect(Math.abs(tabs!.y + tabs!.height / 2 - search!.y - search!.height / 2)).toBeLessThan(2);
+    expect(tabs!.x + tabs!.width).toBeLessThanOrEqual(search!.x);
+    expect(video!.height).toBeGreaterThan(size.height * (isMobile ? 0.6 : 0.65));
+    const limit = isMobile
+      ? (await page.getByRole('navigation', { name: '모바일 메뉴' }).boundingBox())!.y
+      : size.height;
+    expect(video!.y + video!.height).toBeLessThanOrEqual(limit);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
+    await page.getByRole('button', { name: '아트', exact: true }).click();
+    await expect(page.locator('.video-card')).toHaveCount(2);
+    await page.getByRole('textbox', { name: '영상 검색' }).fill('프레임');
+    await expect(page.locator('.video-card')).toHaveCount(1);
+  }
+});
 test('honest setup and accessible responsive navigation', async ({ page, isMobile }) => {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));

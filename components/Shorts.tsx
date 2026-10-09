@@ -335,28 +335,8 @@ export default function Shorts({ demo = false }: { demo?: boolean }) {
   }, [go, index]);
   if (!demo && !client) return <Setup />;
   return (
-    <section className="feed-page">
-      <div className="feed-heading">
-        <div>
-          <span className="eyebrow">
-            {demo ? 'PUBLIC SAMPLES / NOT YOUR LIBRARY' : 'A COLLECTION OF MOMENTS'}
-          </span>
-          <h1>
-            {demo ? '새로운 시선의 시작.' : '지금, 이 순간의 모션.'}
-            <span className="lime">*</span>
-          </h1>
-        </div>
-        <label className="search-box">
-          <Search size={17} />
-          <span className="sr-only">영상 검색</span>
-          <input
-            placeholder="관심 있는 순간을 찾아보세요"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </label>
-      </div>
-      <div className="filter-row">
+    <section className="feed-page" aria-label={demo ? '샘플 숏폼 영상' : '모션 영상'}>
+      <div className="feed-toolbar">
         <div className="category-tabs" aria-label="영상 카테고리">
           {categories.map((c) => (
             <button
@@ -370,6 +350,15 @@ export default function Shorts({ demo = false }: { demo?: boolean }) {
           ))}
         </div>
         <span className="collection-count">{filtered.length} FILMS</span>
+        <label className="search-box">
+          <Search size={17} />
+          <span className="sr-only">영상 검색</span>
+          <input
+            placeholder="영상 검색"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </label>
       </div>
       {demo && (
         <p className="demo-banner">
