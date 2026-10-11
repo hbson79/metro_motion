@@ -5,6 +5,58 @@ import { FileText, ArrowUpRight, Search, ArrowLeft, Download, Files } from 'luci
 import { type Content, filterContent, errorMessage } from '../lib/domain';
 import { getClient, listContent, listCategories, signedUrl } from '../lib/repository';
 import Setup from './Setup';
+function ImagePreview({ row }: { row: Content }) {
+  const client = getClient();
+  const [url, setUrl] = useState('');
+  const [error, setError] = useState('');
+  const [retry, setRetry] = useState(0);
+  useEffect(() => {
+    if (!client) return;
+    let alive = true;
+    async function load() {
+      setUrl('');
+      setError('');
+      try {
+        const next = await signedUrl(client!, 'documents', row.storage_path);
+        if (alive) setUrl(next);
+      } catch (e) {
+        if (alive) setError(errorMessage(e));
+      }
+    }
+    void load();
+    // Recheck RLS before the five-minute signed URL expires.
+    const timer = window.setInterval(() => void load(), 240000);
+    return () => {
+      alive = false;
+      window.clearInterval(timer);
+    };
+  }, [client, row.storage_path, retry]);
+  return (
+    <div className="image-preview">
+      {error ? (
+        <div>
+          <p className="error-message" role="alert">
+            {error}
+          </p>
+          <button className="secondary-button" onClick={() => setRetry((r) => r + 1)}>
+            이미지 다시 시도
+          </button>
+        </div>
+      ) : url ? (
+        <img
+          src={url}
+          alt={row.title}
+          onError={() => {
+            setUrl('');
+            setError('이미지를 불러오지 못했습니다. 다시 시도해 주세요.');
+          }}
+        />
+      ) : (
+        <p role="status">이미지 미리보기 준비 중…</p>
+      )}
+    </div>
+  );
+}
 export function DocumentCard({ row }: { row: Content }) {
   return (
     <Link className="document-card" href={`/documents/${row.id}`}>
@@ -206,9 +258,15 @@ export function DocumentDetail({ id }: { id: string }) {
       ) : (
         <div className="detail-grid">
           <div className="detail-cover">
-            <FileText size={100} strokeWidth={0.8} />
-            <span>{row.original_name.split('.').pop()?.toUpperCase()}</span>
-            <small>METRO MOTION / RESOURCES</small>
+            {['image/jpeg', 'image/png', 'image/webp'].includes(row.mime_type) ? (
+              <ImagePreview key={row.storage_path} row={row} />
+            ) : (
+              <>
+                <FileText size={100} strokeWidth={0.8} />
+                <span>{row.original_name.split('.').pop()?.toUpperCase()}</span>
+                <small>METRO MOTION / RESOURCES</small>
+              </>
+            )}
           </div>
           <article>
             <span className="eyebrow">RESOURCE / {row.category}</span>

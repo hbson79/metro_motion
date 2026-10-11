@@ -222,7 +222,9 @@ export function ContentEditor({
                 <input
                   id="content-file"
                   type="file"
-                  accept={kind === 'videos' ? '.mp4,.webm' : 'application/pdf,text/plain,.docx'}
+                  accept={
+                    kind === 'videos' ? '.mp4,.webm' : '.pdf,.txt,.docx,.jpg,.jpeg,.png,.webp'
+                  }
                   onChange={(e) => {
                     setFile(e.target.files?.[0] || null);
                     setError('');
@@ -238,7 +240,7 @@ export function ContentEditor({
                 <small>
                   {kind === 'videos'
                     ? 'MP4 / WebM · 최대 250MB · 세로 9:16 권장'
-                    : 'PDF / TXT / DOCX · 최대 20MB'}
+                    : 'PDF / TXT / DOCX / JPG / JPEG / PNG / WebP · 최대 20MB'}
                   <br />
                   교체하지 않으면 기존 파일을 유지합니다.
                 </small>
@@ -470,7 +472,9 @@ export default function Admin() {
         client,
         kind,
         row.storage_path,
-        kind === 'documents' ? row.original_name : undefined,
+        kind === 'documents' && !['image/jpeg', 'image/png', 'image/webp'].includes(row.mime_type)
+          ? row.original_name
+          : undefined,
       );
       if (tab) tab.location.href = url;
       else setError('팝업이 차단되었습니다. 브라우저 설정에서 팝업을 허용하세요.');

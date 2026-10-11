@@ -24,6 +24,9 @@ export function validateUpload(
       : {
           'application/pdf': ['pdf'],
           'text/plain': ['txt'],
+          'image/jpeg': ['jpg', 'jpeg'],
+          'image/png': ['png'],
+          'image/webp': ['webp'],
           'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['docx'],
         };
   const extensions = allowed[file.type as keyof typeof allowed] as string[] | undefined;

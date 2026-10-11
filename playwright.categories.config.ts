@@ -2,7 +2,7 @@ import { defineConfig } from '@playwright/test';
 import base from './playwright.config';
 export default defineConfig({
   ...base,
-  testMatch: '**/categories.spec.ts',
+  testMatch: ['**/categories.spec.ts', '**/images.spec.ts'],
   grep: /.*/,
   testIgnore: [],
   webServer: {

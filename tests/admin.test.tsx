@@ -4,6 +4,25 @@ import { it, expect, vi, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
 import Admin, { Login, ContentEditor, CategoryManager } from '../components/Admin';
 afterEach(cleanup);
+it.each([
+  ['photo.jpg', 'image/jpeg'],
+  ['photo.jpeg', 'image/jpeg'],
+  ['photo.PNG', 'image/png'],
+  ['photo.WebP', 'image/webp'],
+])('editor permits selecting and saving %s', (name, type) => {
+  const save = vi.fn();
+  render(<ContentEditor kind="documents" onSave={save} onCancel={() => {}} busy={false} />);
+  const input = screen.getByLabelText('파일 선택');
+  expect(input.getAttribute('accept')).toContain(`.${name.split('.').pop()!.toLowerCase()}`);
+  const file = new File(['image'], name, { type });
+  fireEvent.change(screen.getByLabelText('제목'), { target: { value: '사진' } });
+  fireEvent.change(input, { target: { files: [file] } });
+  fireEvent.submit(screen.getByRole('form', { name: '콘텐츠 편집' }));
+  expect(save).toHaveBeenCalledWith(
+    { title: '사진', description: '', category: '도시', published: false },
+    file,
+  );
+});
 it('editor uses managed categories instead of the hardcoded defaults', () => {
   const save = vi.fn();
   render(
