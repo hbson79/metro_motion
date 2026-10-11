@@ -11,7 +11,7 @@ import {
   RotateCw,
   MoveDownRight,
 } from 'lucide-react';
-import { CATEGORIES, filterContent, errorMessage } from '../lib/domain';
+import { filterContent, errorMessage } from '../lib/domain';
 import { getClient, listContent, listCategories, signedUrl } from '../lib/repository';
 import Setup from './Setup';
 export type PlayItem = {
@@ -23,35 +23,7 @@ export type PlayItem = {
   storage_path?: string;
   source?: string;
 };
-export const DEMO_ITEMS: PlayItem[] = [
-  {
-    id: 'demo-flower',
-    title: '작은 순간의 움직임',
-    description:
-      '바람에 흔들리는 꽃. MDN의 공개 CC0 테스트 영상입니다. 실제 등록 콘텐츠가 아닙니다.',
-    category: '자연',
-    url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
-    source: 'MDN / CC0 FLOWER',
-  },
-  {
-    id: 'demo-sintel',
-    title: '프레임 너머의 이야기',
-    description:
-      'Sintel 예고편. Blender Foundation의 공개 샘플 영상입니다. 원본은 가로 영상이며 화면에 맞춰 표시합니다.',
-    category: '아트',
-    url: 'https://media.w3.org/2010/05/sintel/trailer.mp4',
-    source: 'BLENDER FOUNDATION / SINTEL',
-  },
-  {
-    id: 'demo-bunny',
-    title: '움직임이 만드는 세계',
-    description:
-      'Big Buck Bunny 예고편. Blender Foundation의 공개 샘플 영상입니다. 원본은 가로 영상이며 화면에 맞춰 표시합니다.',
-    category: '아트',
-    url: 'https://media.w3.org/2010/05/bunny/trailer.mp4',
-    source: 'BLENDER FOUNDATION / BIG BUCK BUNNY',
-  },
-];
+
 export function VideoCard({
   item,
   active,
@@ -171,7 +143,7 @@ export function VideoCard({
       <div className="video-top">
         <span className="video-label">
           <span className="status-dot" />
-          {item.url ? 'SAMPLE / DEMO' : 'METRO ORIGINAL'}
+          METRO ORIGINAL
         </span>
         <span className="video-number">{String(index + 1).padStart(2, '0')}</span>
       </div>
@@ -246,22 +218,22 @@ export function VideoCard({
     </article>
   );
 }
-export default function Shorts({ demo = false }: { demo?: boolean }) {
+export default function Shorts() {
   const client = getClient();
-  const [rows, setRows] = useState<PlayItem[]>(demo ? DEMO_ITEMS : []);
-  const [loading, setLoading] = useState(!demo);
+  const [rows, setRows] = useState<PlayItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [refresh, setRefresh] = useState(0);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('전체');
-  const [categories, setCategories] = useState<string[]>(demo ? CATEGORIES : ['전체']);
+  const [categories, setCategories] = useState<string[]>(['전체']);
   const [index, setIndex] = useState(0);
   const [muted, setMuted] = useState(true);
   const [paused, setPaused] = useState(false);
   const scroller = useRef<HTMLDivElement>(null);
   const wheelTime = useRef(0);
   useEffect(() => {
-    if (demo || !client) return;
+    if (!client) return;
     let alive = true;
     setLoading(true);
     setError('');
@@ -282,7 +254,7 @@ export default function Shorts({ demo = false }: { demo?: boolean }) {
     return () => {
       alive = false;
     };
-  }, [client, demo, refresh]);
+  }, [client, refresh]);
   const filtered = useMemo(() => filterContent(rows, search, category), [rows, search, category]);
   const go = useCallback(
     (next: number) => {
@@ -333,9 +305,9 @@ export default function Shorts({ demo = false }: { demo?: boolean }) {
     window.addEventListener('keydown', key);
     return () => window.removeEventListener('keydown', key);
   }, [go, index]);
-  if (!demo && !client) return <Setup />;
+  if (!client) return <Setup />;
   return (
-    <section className="feed-page" aria-label={demo ? '샘플 숏폼 영상' : '모션 영상'}>
+    <section className="feed-page" aria-label="모션 영상">
       <div className="feed-toolbar">
         <div className="category-tabs" aria-label="영상 카테고리">
           {categories.map((c) => (
@@ -360,11 +332,7 @@ export default function Shorts({ demo = false }: { demo?: boolean }) {
           />
         </label>
       </div>
-      {demo && (
-        <p className="demo-banner">
-          공개 샘플 데모 · Supabase에 저장된 콘텐츠가 아닙니다. 원본 출처를 각 영상에 표시합니다.
-        </p>
-      )}
+
       {loading ? (
         <div className="empty-state" role="status">
           모션을 불러오는 중…
@@ -400,9 +368,7 @@ export default function Shorts({ demo = false }: { demo?: boolean }) {
       ) : (
         <div className="viewer-layout">
           <div className="feed-editorial">
-            <span className="eyebrow">
-              {demo ? 'DEMO EDITION' : 'THE MOTION EDIT'} / {String(index + 1).padStart(2, '0')}
-            </span>
+            <span className="eyebrow">THE MOTION EDIT / {String(index + 1).padStart(2, '0')}</span>
             <h2>
               일상을
               <br />

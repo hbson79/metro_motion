@@ -1,5 +1,4 @@
-import Link from 'next/link';
-import { ArrowUpRight, Unplug, ArrowRight } from 'lucide-react';
+import { Unplug, ArrowRight } from 'lucide-react';
 export default function Setup() {
   return (
     <section className="setup-page">
@@ -22,15 +21,10 @@ export default function Setup() {
             <Unplug size={19} />
             <div>
               <strong>Supabase 연결이 필요합니다</strong>
-              <p>
-                현재 등록된 콘텐츠를 불러올 수 없습니다. 데모는 실제 라이브러리가 아니며 로그인과
-                저장 기능을 모방하지 않습니다.
-              </p>
+              <p>현재 등록된 콘텐츠를 불러올 수 없습니다. 프로젝트 연결 설정을 확인해 주세요.</p>
             </div>
           </div>
-          <Link className="primary-button" href="/demo">
-            데모 플레이어 둘러보기 <ArrowUpRight size={19} />
-          </Link>
+
           <a className="text-link" href="#setup-guide">
             프로젝트 연결 안내 <ArrowRight size={16} />
           </a>

@@ -1,15 +1,14 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Clapperboard, Files, ArrowUpRight, ShieldCheck, Play, Radio } from 'lucide-react';
+import { Clapperboard, Files, ArrowUpRight, ShieldCheck, Radio } from 'lucide-react';
 const links = [
   { href: '/', label: '모션 피드', english: 'MOTION FEED', icon: Clapperboard },
   { href: '/documents', label: '자료 라이브러리', english: 'RESOURCES', icon: Files },
-  { href: '/demo', label: '데모 플레이어', english: 'DEMO / SAMPLE', icon: Play },
 ];
 export default function Shell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
-  const isFeed = path === '/' || path === '/demo';
+  const isFeed = path === '/';
   return (
     <>
       <a href="#main" className="skip-link">

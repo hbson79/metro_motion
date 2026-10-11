@@ -11,7 +11,7 @@
     "build": "next build",
     "start": "next start",
     "test": "vitest run",
-    "test:e2e": "playwright test",
+    "test:e2e": "playwright test && playwright test --config playwright.feed.config.ts && playwright test --config playwright.categories.config.ts",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check ."

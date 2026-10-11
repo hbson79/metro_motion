@@ -1,6 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
   testDir: './tests/e2e',
+  testIgnore: '**/categories.spec.ts',
+  grep: /honest setup|library detail|demo route/,
   timeout: 45000,
   expect: { timeout: 15000 },
   fullyParallel: false,

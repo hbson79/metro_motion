@@ -1,6 +1,6 @@
 # METRO MOTION
 
-한국어 숏폼 영상 피드와 자료 라이브러리, 관리자 스튜디오. Next.js App Router + TypeScript + Supabase Auth / PostgreSQL / Private Storage로 구현했습니다. 가짜 로그인·가짜 저장 기능은 없습니다. 환경 변수가 없으면 연결 안내를 표시하고 `/demo`에서만 명시적으로 공개 테스트 영상을 보여 줍니다.
+한국어 숏폼 영상 피드와 자료 라이브러리, 관리자 스튜디오. Next.js App Router + TypeScript + Supabase Auth / PostgreSQL / Private Storage로 구현했습니다. 등록된 공개 영상만 표시하며 가짜 로그인·가짜 저장 기능은 없습니다. 환경 변수가 없으면 연결 안내를 표시합니다.
 
 ## 실행
 
@@ -92,9 +92,9 @@ where user_id = (select id from auth.users where lower(email)=lower('admin@your-
 
 - `/admin` → **카테고리 관리**에서 영상·문서 공통 카테고리를 추가, 이름 변경, 삭제합니다.
 - 이름은 앞뒤 공백을 제거한 1–40자이며 중복 이름과 필터용 예약어 `전체`는 사용할 수 없습니다.
-- 이름 변경은 외래 키 `ON UPDATE CASCADE`로 연결된 영상·문서(미공개 포함)에 한 트랜잭잭션으로 반영됩니다. 파일·공개 상태는 바뀌지 않습니다.
+- 이름 변경은 외래 키 `ON UPDATE CASCADE`로 연결된 영상·문서(미공개 포함)에 한 트랜잭션으로 반영됩니다. 파일·공개 상태는 바뀌지 않습니다.
 - 사용 중인 카테고리는 DB에서 삭제를 거부합니다. 먼저 콘텐츠를 다른 카테고리로 옮기세요. 미사용 카테고리만 확인 창을 거쳐 삭제할 수 있습니다.
-- 공개 영상·문서 필터와 업로드/수정 선택 목록은 실제 DB 카테고리를 조회합니다. `/demo`는 별도 고정 샘플 분류를 유지합니다.
+- 공개 영상·문서 필터와 업로드/수정 선택 목록은 실제 DB 카테고리를 조회합니다.
 - **새 코드 배포 전에** `supabase/migrations/002_categories.sql`을 한 번 적용해야 합니다. 기존 `001_initial.sql`을 재실행하지 마세요. 운영 적용은 프로젝트 관리자의 승인이 필요하며 이 로컬 구현 작업에서는 실행하지 않았습니다.
 - `002`는 `categories` 테이블과 관리자 RLS를 만들고, 기존 분류/콘텐츠를 보존하면서 영상·문서의 고정 CHECK를 외래 키로 교체합니다. Storage/Auth/관리자 멤버십은 변경하지 않습니다. 마이그레이션은 트랜잭션이므로 실패 시 전체 롤백됩니다.
 - 적용 후 되돌리려면 새 분류가 연결된 콘텐츠부터 정리하고 이전 코드·고정 CHECK를 복구해야 하므로 `categories`를 임의로 삭제하지 마세요. 운영 적용 전 DB 백업을 확보하세요.
@@ -123,7 +123,6 @@ DB와 Storage는 하나의 원자적 트랜잭션이 아닙니다.
 | 경로              | 기능                                                                   |
 | ----------------- | ---------------------------------------------------------------------- |
 | `/`               | 공개 영상, 수직 스크롤 스냅, 휠·터치·키보드, 검색·카테고리             |
-| `/demo`           | 별도 표시된 MDN / Blender 공개 샘플, 실제 저장 목록과 분리             |
 | `/documents`      | 공개 문서 검색·카테고리·정보 카드                                      |
 | `/documents/[id]` | 접근 가능한 문서의 제목·설명·파일 정보·실제 서명 다운로드              |
 | `/admin`          | 이메일/비밀번호 로그인, 영상/문서 업로드·수정·파일 교체·삭제·공개 전환 |
@@ -132,7 +131,7 @@ DB와 Storage는 하나의 원자적 트랜잭션이 아닙니다.
 
 영상의 대사에 대한 자막 관리나 트랜스코딩은 포함하지 않습니다. 운영 콘텐츠에 대사가 있다면 접근성을 위해 영상 자체에 자막을 넣고 설명에 요약을 제공하세요. 지원 형식이라도 브라우저가 해당 코덱을 지원하지 않으면 재생할 수 없습니다. MP4 H.264/AAC 또는 WebM VP8/VP9을 권장하며, 권리를 보유한 파일만 업로드하세요.
 
-샘플 출처: MDN CC0 flower (`interactive-examples.mdn.mozilla.net`) 및 Blender Foundation Sintel / Big Buck Bunny 예고편 (`media.w3.org`). 데모는 가로 원본을 크롭해 보여 주며 원본 출처를 표시합니다. 외부 샘플의 가용성은 제3자에 달려 있습니다. Google Fonts에서 DM Sans / Noto Sans KR을 요청하며 연결이 차단되면 시스템 글꼴로 대체됩니다.
+데모 페이지와 메뉴는 제거했으며 `/demo`는 404를 반환합니다. Google Fonts에서 DM Sans / Noto Sans KR을 요청하며 연결이 차단되면 시스템 글꼴로 대체됩니다.
 
 ## 자동 검증
 
@@ -141,9 +140,10 @@ npm test                    # Vitest: 도메인·인증 폼·편집 폼·정리�
 npm run typecheck           # strict TypeScript
 npm run build               # 실제 Next.js production build
 npx playwright install chromium
-npm run test:e2e            # desktop/mobile 실제 브라우저 + 공개 영상 재생 + axe
+npm run test:e2e            # 설정 안내·데모 제거·영상 피드·카테고리 desktop/mobile + axe
+npx playwright test --config playwright.categories.config.ts # 카테고리 UI, 원격 경계 fixture (운영 CRUD 아님)
 # 위에서 build한 환경 변수가 비어 있는 설정 안내 빌드 검증:
-METRO_E2E_PRODUCTION=1 npm run test:e2e  # next start production 서버로 같은 검증
+METRO_E2E_PRODUCTION=1 npx playwright test  # env 없는 production 서버의 연결 안내/404 검증
 npm run format:check        # Prettier
 npm audit
 ```
@@ -151,7 +151,7 @@ npm audit
 - 테스트를 먼저 만들고 missing-feature RED를 실행한 후 구현/회귀 GREEN을 수행한 수직 TDD 사이클을 사용했습니다. 스크롤과 하단 모바일 컨트롤 회귀도 브라우저 실패를 관찰한 뒤 고쳤습니다.
 - RLS 테스트는 **PGlite의 실제 PostgreSQL 엔진**에서 마이그레이션을 실행합니다. Auth UID / Storage 테이블 최소 구조는 테스트 DB에 정의하고, anon / authenticated / admin 역할을 바꿔 공개·초안 읽기, self-grant 금지, 쓰기 금지, 공개 해제, 과도한 기본 TRUNCATE 권한 회수를 검증합니다. Supabase 관리형 HTTP/Auth/Storage 자체를 에뮬레이션하거나 실제 프로젝트 결과인 척하지 않습니다.
 - 저장 보상·로그인 폼의 단위 테스트에서는 원격 경계만 테스트 더블을 사용합니다. 앱의 런타임에는 테스트 더블이 없습니다.
-- Playwright는 테스트 서버의 공개 Supabase 환경 변수를 비워 **설정 안내와 별도 데모 경로**를 검사합니다. 실제 MDN 동영상의 decoded readiness, 활성 영상 하나만 재생, mute/pause/keyboard/wheel/filter, 모바일 레이아웃, axe 접근성을 검사합니다. 외부 샘플 네트워크에 접근하지 못하면 해당 테스트가 실패합니다.
+- Playwright 기본 설정은 환경 변수를 비워 연결 안내와 데모 경로 제거를 검사합니다. `playwright.feed.config.ts`는 테스트 전용 Supabase 원격 경계 fixture로 홈 피드를 검사합니다. 실제 MDN CC0 flower 영상의 decoded readiness, 활성 영상 하나만 재생, mute/pause/keyboard/wheel/filter, 모바일 레이아웃, axe 접근성을 검사하며 운영 DB/Auth/Storage에는 접근하지 않습니다. 테스트 영상은 앱 런타임 데이터에 포함되지 않으며 외부 영상 네트워크에 접근하지 못하면 해당 테스트가 실패합니다.
 - 관리형 Supabase의 실제 로그인/CRUD/서명 다운로드/익명 차단은 환경 연결 후 아래 체크리스트로 별도 검증해야 합니다. 환경 연결 전의 테스트 통과가 실제 프로젝트 연결 성공을 뜻하지는 않습니다.
 
 ## 배포: GitHub → Vercel
@@ -177,7 +177,7 @@ npm run build
 1. Vercel → Add New → Project → `hbson79/metro_motion` Import.
 2. Framework preset: **Next.js**, Root directory: 저장소 루트, Install: `npm ci`, Build: `npm run build`, Output directory: 기본값 유지.
 3. Production / Preview / Development 환경에 두 `NEXT_PUBLIC_SUPABASE_*` 값을 설정합니다. **service_role/secret 키는 설정하지 않습니다.** 지원 중인 Node LTS(22/24 등)를 선택하세요.
-4. Deploy를 실행하고 결과 URL의 홈·문서·관리자·데모를 확인합니다.
+4. Deploy를 실행하고 결과 URL의 홈·문서·관리자를 확인합니다.
 5. Supabase Authentication → URL Configuration → Site URL을 실제 Production origin으로 설정하고 필요한 Preview/Development origin만 Redirect URLs에 추가합니다. 비밀번호 로그인만 사용하는 앱이지만 이후 확인 메일/비밀번호 재설정을 위한 origin도 관리하세요.
 6. 사용자 정의 도메인과 HTTPS를 연결한 뒤 아래 확인 항목을 수행합니다. 데이터베이스/스토리지 백업과 공개 콘텐츠 권리 정책은 운영자가 설정해야 합니다.
 

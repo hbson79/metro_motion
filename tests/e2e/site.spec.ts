@@ -1,10 +1,19 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './feed-fixture';
 import AxeBuilder from '@axe-core/playwright';
+test('demo route is removed and navigation exposes only real sections', async ({ page }) => {
+  const response = await page.goto('/demo');
+  expect(response?.status()).toBe(404);
+  await page.goto('/');
+  await expect(page.locator('a[href="/demo"]')).toHaveCount(0);
+  await expect(page.locator('.mobile-nav a')).toHaveCount(3);
+  await expect(page.locator('.sidebar .nav-link')).toHaveCount(2);
+});
 test('feed removes decorative topbar and reserves only mobile navigation height', async ({
   page,
   isMobile,
 }) => {
-  await page.goto('/demo');
+  await page.goto('/');
+  await expect(page.locator('.video-scroller')).toBeVisible();
   await expect(page.locator('.topbar')).toHaveCount(0);
   const bounds = await page.evaluate(() => {
     const feed = document.querySelector('.feed-page')!.getBoundingClientRect();
@@ -41,7 +50,8 @@ test('compact feed keeps categories and search on one row and gives space to vid
       ];
   for (const size of sizes) {
     await page.setViewportSize(size);
-    await page.goto('/demo');
+    await page.goto('/');
+    await expect(page.locator('.video-scroller')).toBeVisible();
     await expect(page.getByRole('heading', { level: 1 })).not.toBeVisible();
     const tabs = await page.locator('[aria-label="영상 카테고리"]').boundingBox();
     const search = await page.getByRole('textbox', { name: '영상 검색' }).boundingBox();
@@ -70,7 +80,8 @@ test('honest setup and accessible responsive navigation', async ({ page, isMobil
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto('/');
   await expect(page.getByRole('heading', { name: '연결을 기다리는 스튜디오' })).toBeVisible();
-  await expect(page.getByRole('link', { name: '데모 플레이어 둘러보기' })).toBeVisible();
+  await expect(page.locator('a[href="/demo"]')).toHaveCount(0);
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   await expect(page.locator('html')).toHaveAttribute('lang', 'ko');
   expect(
     await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
@@ -83,12 +94,14 @@ test('honest setup and accessible responsive navigation', async ({ page, isMobil
   });
   expect(errors).toEqual([]);
 });
-test('real demo plays only active video, supports pause mute keyboard wheel and filter', async ({
+test('registered feed fixture plays only active video, supports pause mute keyboard wheel and filter', async ({
   page,
   isMobile,
 }) => {
-  await page.goto('/demo');
-  await expect(page.getByText('공개 샘플 데모 ·', { exact: false })).toBeVisible();
+  await page.goto('/');
+  await expect(page.locator('.video-card')).toHaveCount(3);
+  await expect(page.locator('a[href="/demo"]')).toHaveCount(0);
+  await expect(page.locator('.demo-banner')).toHaveCount(0);
   const first = page.locator('video').first();
   await expect
     .poll(() => first.evaluate((v: HTMLVideoElement) => v.readyState), { timeout: 30000 })
@@ -149,7 +162,7 @@ test('real demo plays only active video, supports pause mute keyboard wheel and 
     )
     .toBeGreaterThan(0.05);
   await page.screenshot({
-    path: `test-results/demo-${isMobile ? 'mobile' : 'desktop'}.png`,
+    path: `test-results/feed-${isMobile ? 'mobile' : 'desktop'}.png`,
     fullPage: true,
   });
   if (isMobile) {
@@ -176,7 +189,8 @@ test('real demo plays only active video, supports pause mute keyboard wheel and 
   }
 });
 test('player fits viewport without navigation covering controls', async ({ page, isMobile }) => {
-  await page.goto('/demo');
+  await page.goto('/');
+  await expect(page.locator('.video-scroller')).toBeVisible();
   const bounds = await page.evaluate(() => ({
     height: innerHeight,
     controlBottom: document.querySelector('.is-active .video-controls')!.getBoundingClientRect()
@@ -185,8 +199,8 @@ test('player fits viewport without navigation covering controls', async ({ page,
   }));
   expect(bounds.controlBottom).toBeLessThanOrEqual(isMobile ? bounds.navTop : bounds.height);
 });
-test('setup and demo have no serious automated accessibility violations', async ({ page }) => {
-  for (const route of ['/', '/demo']) {
+test('feed has no serious automated accessibility violations', async ({ page }) => {
+  for (const route of ['/']) {
     await page.goto(route);
     const result = await new AxeBuilder({ page })
       .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])

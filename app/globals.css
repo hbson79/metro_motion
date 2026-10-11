@@ -662,12 +662,7 @@ main {
   white-space: nowrap;
   color: var(--muted);
 }
-.demo-banner {
-  font-size: 10px;
-  line-height: 1.7;
-  color: var(--muted);
-  padding-top: 9px;
-}
+
 .viewer-layout {
   height: clamp(440px, calc(100dvh - 294px), 800px);
   display: flex;
@@ -1933,11 +1928,7 @@ main {
   .filter-row > .collection-count {
     display: none;
   }
-  .demo-banner {
-    font-size: 8px;
-    padding-top: 7px;
-    line-height: 1.65;
-  }
+
   .viewer-layout {
     height: max(420px, calc(100dvh - 296px - env(safe-area-inset-bottom)));
     gap: 13px;
@@ -2284,7 +2275,6 @@ main {
 }
 .feed-heading,
 .filter-row,
-.demo-banner,
 .feed-footer {
   flex-shrink: 0;
 }
@@ -2355,6 +2345,27 @@ main {
   }
   .rail-caption {
     margin-top: 14px;
+  }
+}
+/* Keep metadata compact without changing document cards or playback controls. */
+.feed-page .video-caption h2 {
+  font-size: 18px;
+  line-height: 1.3;
+  margin: 4px 0 3px;
+}
+.feed-page .video-caption p {
+  line-height: 1.5;
+  -webkit-line-clamp: 2;
+}
+.feed-page .video-caption .category-tag {
+  padding: 1px 7px;
+}
+.feed-page .video-caption small {
+  margin-top: 4px;
+}
+@media (max-width: 760px) {
+  .feed-page .video-caption h2 {
+    font-size: 16px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
