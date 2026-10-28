@@ -1,10 +1,11 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Clapperboard, Files, ArrowUpRight, ShieldCheck, Radio } from 'lucide-react';
+import { Clapperboard, Files, ArrowUpRight, ShieldCheck, Radio, Presentation } from 'lucide-react';
 const links = [
   { href: '/', label: '모션 피드', english: 'MOTION FEED', icon: Clapperboard },
   { href: '/documents', label: '자료 라이브러리', english: 'RESOURCES', icon: Files },
+  { href: '/slides', label: 'HTML 슬라이드', english: 'SLIDES', icon: Presentation },
 ];
 export default function Shell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
@@ -31,7 +32,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             <Link
               key={href}
               href={href}
-              className={`nav-link ${path === href || (href === '/documents' && path.startsWith('/documents/')) ? 'selected' : ''}`}
+              className={`nav-link ${path === href || (href !== '/' && path.startsWith(`${href}/`)) ? 'selected' : ''}`}
             >
               <Icon size={19} />
               <span>
@@ -75,7 +76,13 @@ export default function Shell({ children }: { children: React.ReactNode }) {
       </div>
       <nav className="mobile-nav" aria-label="모바일 메뉴">
         {links.map(({ href, label, icon: Icon }) => (
-          <Link key={href} href={href} aria-current={path === href ? 'page' : undefined}>
+          <Link
+            key={href}
+            href={href}
+            aria-current={
+              path === href || (href !== '/' && path.startsWith(`${href}/`)) ? 'page' : undefined
+            }
+          >
             <Icon size={20} />
             <span>{label}</span>
           </Link>

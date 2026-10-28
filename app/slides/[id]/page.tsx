@@ -1,0 +1,5 @@
+import { SlideDetail } from '../../../components/Slides';
+export default async function Detail({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  return <SlideDetail id={id} />;
+}

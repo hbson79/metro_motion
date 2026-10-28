@@ -5,8 +5,10 @@ test('demo route is removed and navigation exposes only real sections', async ({
   expect(response?.status()).toBe(404);
   await page.goto('/');
   await expect(page.locator('a[href="/demo"]')).toHaveCount(0);
-  await expect(page.locator('.mobile-nav a')).toHaveCount(3);
-  await expect(page.locator('.sidebar .nav-link')).toHaveCount(2);
+  await expect(page.locator('.mobile-nav a')).toHaveCount(4);
+  await expect(page.locator('.sidebar .nav-link')).toHaveCount(3);
+  await expect(page.locator('.mobile-nav a[href="/slides"]')).toHaveCount(1);
+  await expect(page.locator('.sidebar a[href="/slides"]')).toHaveCount(1);
 });
 test('feed removes decorative topbar and reserves only mobile navigation height', async ({
   page,

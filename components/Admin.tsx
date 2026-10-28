@@ -175,7 +175,9 @@ export function ContentEditor({
               ? '콘텐츠 수정'
               : kind === 'videos'
                 ? '새로운 모션 업로드'
-                : '새로운 자료 업로드'}
+                : kind === 'slides'
+                  ? '새로운 HTML 슬라이드 업로드'
+                  : '새로운 자료 업로드'}
           </h2>
         </div>
         <button className="icon-button" aria-label="편집 닫기" disabled={busy} onClick={onCancel}>
@@ -223,7 +225,11 @@ export function ContentEditor({
                   id="content-file"
                   type="file"
                   accept={
-                    kind === 'videos' ? '.mp4,.webm' : '.pdf,.txt,.docx,.jpg,.jpeg,.png,.webp'
+                    kind === 'slides'
+                      ? '.html,.htm'
+                      : kind === 'videos'
+                        ? '.mp4,.webm'
+                        : '.pdf,.txt,.docx,.jpg,.jpeg,.png,.webp'
                   }
                   onChange={(e) => {
                     setFile(e.target.files?.[0] || null);
@@ -238,9 +244,11 @@ export function ContentEditor({
                       : '이곳에서 업로드할 파일을 선택하세요.'}
                 </p>
                 <small>
-                  {kind === 'videos'
-                    ? 'MP4 / WebM · 최대 250MB · 세로 9:16 권장'
-                    : 'PDF / TXT / DOCX / JPG / JPEG / PNG / WebP · 최대 20MB'}
+                  {kind === 'slides'
+                    ? 'HTML / HTM · 최대 20MB · CSS/JS/이미지를 포함한 단일 파일. 외부 리소스·네트워크·폼은 차단됩니다.'
+                    : kind === 'videos'
+                      ? 'MP4 / WebM · 최대 250MB · 세로 9:16 권장'
+                      : 'PDF / TXT / DOCX / JPG / JPEG / PNG / WebP · 최대 20MB'}
                   <br />
                   교체하지 않으면 기존 파일을 유지합니다.
                 </small>
@@ -465,6 +473,10 @@ export default function Admin() {
   }
   async function preview(row: Content) {
     if (!client) return;
+    if (kind === 'slides') {
+      window.open(`/slides/${row.id}`, '_blank', 'noopener,noreferrer');
+      return;
+    }
     const tab = window.open('about:blank', '_blank');
     if (tab) tab.opener = null;
     try {
@@ -523,7 +535,7 @@ export default function Admin() {
       </div>
       <div className="admin-stats">
         <div>
-          <span>현재 {kind === 'videos' ? '영상' : '문서'}</span>
+          <span>현재 {kind === 'videos' ? '영상' : kind === 'slides' ? '슬라이드' : '문서'}</span>
           <strong>
             {rows.length}
             <small> TOTAL</small>
@@ -546,7 +558,7 @@ export default function Admin() {
       </div>
       <div className="admin-toolbar">
         <div className="content-tabs">
-          {(['videos', 'documents'] as Kind[]).map((k) => (
+          {(['videos', 'documents', 'slides'] as Kind[]).map((k) => (
             <button
               key={k}
               aria-pressed={kind === k}
@@ -560,7 +572,7 @@ export default function Admin() {
               }}
             >
               {k === 'videos' ? <Film size={17} /> : <FileText size={17} />}{' '}
-              {k === 'videos' ? '모션 영상' : '자료 문서'}
+              {k === 'videos' ? '모션 영상' : k === 'slides' ? 'HTML 슬라이드' : '자료 문서'}
             </button>
           ))}
         </div>

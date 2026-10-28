@@ -1,4 +1,4 @@
-export type Kind = 'videos' | 'documents';
+export type Kind = 'videos' | 'documents' | 'slides';
 export type Content = {
   id: string;
   title: string;
@@ -13,22 +13,28 @@ export type Content = {
   updated_at: string;
 };
 export const CATEGORIES = ['전체', '도시', '자연', '라이프', '브랜드', '아트'];
-export const LIMITS = { videos: 250 * 1024 * 1024, documents: 20 * 1024 * 1024 };
+export const LIMITS = {
+  videos: 250 * 1024 * 1024,
+  documents: 20 * 1024 * 1024,
+  slides: 20 * 1024 * 1024,
+};
 export function validateUpload(
   file: Pick<File, 'name' | 'type' | 'size'>,
   kind: Kind,
 ): string | null {
   const allowed =
-    kind === 'videos'
-      ? { 'video/mp4': ['mp4'], 'video/webm': ['webm'] }
-      : {
-          'application/pdf': ['pdf'],
-          'text/plain': ['txt'],
-          'image/jpeg': ['jpg', 'jpeg'],
-          'image/png': ['png'],
-          'image/webp': ['webp'],
-          'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['docx'],
-        };
+    kind === 'slides'
+      ? { 'text/html': ['html', 'htm'] }
+      : kind === 'videos'
+        ? { 'video/mp4': ['mp4'], 'video/webm': ['webm'] }
+        : {
+            'application/pdf': ['pdf'],
+            'text/plain': ['txt'],
+            'image/jpeg': ['jpg', 'jpeg'],
+            'image/png': ['png'],
+            'image/webp': ['webp'],
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['docx'],
+          };
   const extensions = allowed[file.type as keyof typeof allowed] as string[] | undefined;
   if (!extensions?.includes(file.name.split('.').pop()?.toLowerCase() || ''))
     return '지원하지 않는 파일 형식입니다.';
