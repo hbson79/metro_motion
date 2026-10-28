@@ -2383,6 +2383,49 @@ main {
     font-size: 16px;
   }
 }
+/* Dedicated player bar: the video frame ends above the controls so nothing covers it. */
+.feed-page .video-card {
+  --player-bar: 52px;
+}
+.feed-page .video-card video,
+.feed-page .video-shade {
+  top: 0;
+  bottom: var(--player-bar);
+  height: calc(100% - var(--player-bar));
+}
+.feed-page .video-shade {
+  background: linear-gradient(
+    180deg,
+    #0005 0%,
+    transparent 24%,
+    transparent 58%,
+    #07100340 78%,
+    #070d04b0 100%
+  );
+}
+.feed-page .video-caption {
+  bottom: calc(var(--player-bar) + 14px);
+}
+.feed-page .video-controls {
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: var(--player-bar);
+  padding: 0 18px;
+  background: #080b06;
+  border-top: 1px solid #ffffff12;
+}
+@media (max-width: 760px) {
+  .feed-page .video-card {
+    --player-bar: 46px;
+  }
+  .feed-page .video-caption {
+    bottom: calc(var(--player-bar) + 12px);
+  }
+  .feed-page .video-controls {
+    padding: 0 12px;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

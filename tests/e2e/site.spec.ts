@@ -199,6 +199,40 @@ test('player fits viewport without navigation covering controls', async ({ page,
   }));
   expect(bounds.controlBottom).toBeLessThanOrEqual(isMobile ? bounds.navTop : bounds.height);
 });
+test('playback controls sit below the video frame instead of covering it', async ({
+  page,
+  isMobile,
+}) => {
+  const sizes = isMobile
+    ? [
+        { width: 390, height: 844 },
+        { width: 360, height: 667 },
+      ]
+    : [
+        { width: 1440, height: 1000 },
+        { width: 1024, height: 768 },
+      ];
+  for (const size of sizes) {
+    await page.setViewportSize(size);
+    await page.goto('/');
+    await expect(page.locator('.is-active video')).toBeVisible();
+    const b = await page.evaluate(() => {
+      const card = document.querySelector('.is-active')!;
+      const rect = (s: string) => card.querySelector(s)!.getBoundingClientRect();
+      return {
+        card: card.getBoundingClientRect(),
+        video: rect('video'),
+        shade: rect('.video-shade'),
+        controls: rect('.video-controls'),
+      };
+    });
+    expect(b.video.top).toBeGreaterThanOrEqual(b.card.top - 0.5);
+    expect(b.video.bottom).toBeLessThanOrEqual(b.controls.top + 0.5);
+    expect(b.shade.bottom).toBeLessThanOrEqual(b.video.bottom + 0.5);
+    expect(b.controls.bottom).toBeLessThanOrEqual(b.card.bottom + 0.5);
+    expect(b.video.height).toBeGreaterThan(b.card.height * 0.85);
+  }
+});
 test('feed has no serious automated accessibility violations', async ({ page }) => {
   for (const route of ['/']) {
     await page.goto(route);
